@@ -24,6 +24,7 @@ export default class Timebar extends React.Component {
   componentWillMount() {
     this.guessResolution();
   }
+
   /**
    * On new props we check if a resolution is given, and if not we guess one
    * @param {Object} nextProps Props coming in
@@ -48,16 +49,11 @@ export default class Timebar extends React.Component {
       end = this.props.end;
     }
     const durationSecs = end.diff(start, 'seconds');
-    //    -> 1h
-    if (durationSecs <= 60 * 60) this.setState({resolution: {top: 'hour', bottom: 'minute'}});
-    // 1h -> 3d
-    else if (durationSecs <= 24 * 60 * 60 * 3) this.setState({resolution: {top: 'day', bottom: 'hour'}});
-    // 1d -> 30d
-    else if (durationSecs <= 30 * 24 * 60 * 60) this.setState({resolution: {top: 'month', bottom: 'day'}});
-    //30d -> 1y
-    else if (durationSecs <= 365 * 24 * 60 * 60) this.setState({resolution: {top: 'year', bottom: 'month'}});
-    // 1y ->
-    else this.setState({resolution: {top: 'year', bottom: 'year'}});
+    if (durationSecs >= 100) {
+      this.setState({resolution: {top: '', bottom: 'minute'}});
+    } else {
+      this.setState({resolution: {top: 'minute', bottom: 'second'}});
+    }
   }
 
   /**
@@ -76,6 +72,7 @@ export default class Timebar extends React.Component {
     let res = this.state.resolution.bottom;
     return this.renderBar({format: this.props.timeFormats.minorLabels[res], type: res});
   }
+
   /**
    * Gets the number of pixels per segment of the timebar section (using the resolution)
    * @param {moment} date The date being rendered. This is used to figure out how many days are in the month
@@ -86,34 +83,23 @@ export default class Timebar extends React.Component {
     const {start, end} = this.props;
     const width = this.props.width - this.props.leftOffset;
 
-    const start_end_min = end.diff(start, 'minutes');
-    const pixels_per_min = width / start_end_min;
-    function isLeapYear(year) {
-      return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
-    }
-    const daysInYear = isLeapYear(date.year()) ? 366 : 365;
+    const start_end_sec = end.diff(start, 'seconds');
+    const pixels_per_sec = width / start_end_sec;
     let inc = width;
     switch (resolutionType) {
-      case 'year':
-        inc = pixels_per_min * 60 * 24 * (daysInYear - offset);
-        break;
-      case 'month':
-        inc = pixels_per_min * 60 * 24 * (date.daysInMonth() - offset);
-        break;
-      case 'day':
-        inc = pixels_per_min * 60 * (24 - offset);
-        break;
-      case 'hour':
-        inc = pixels_per_min * (60 - offset);
-        break;
       case 'minute':
-        inc = pixels_per_min - offset;
+        inc = pixels_per_sec * (60 - offset);
+        break;
+      case 'second':
+        inc = pixels_per_sec - offset;
         break;
       default:
+        inc = pixels_per_sec - offset;
         break;
     }
     return Math.min(inc, width);
   }
+
   /**
    * Renders an entire segment of the timebar (top or bottom)
    * @param {string} resolution The resolution to render at [Year; Month...]
@@ -161,20 +147,10 @@ export default class Timebar extends React.Component {
 
     const addTimeIncrement = _addTimeIncrement.bind(this);
 
-    if (resolution.type === 'year') {
-      const offset = moment.duration(currentDate.diff(currentDate.clone().startOf('year')));
-      addTimeIncrement(offset, 'months', (currentDt, offst) => currentDt.subtract(offst).add(1, 'year'));
-    } else if (resolution.type === 'month') {
-      const offset = moment.duration(currentDate.diff(currentDate.clone().startOf('month')));
-      addTimeIncrement(offset, 'days', (currentDt, offst) => currentDt.subtract(offst).add(1, 'month'));
-    } else if (resolution.type === 'day') {
-      const offset = moment.duration(currentDate.diff(currentDate.clone().startOf('day')));
-      addTimeIncrement(offset, 'hours', (currentDt, offst) => currentDt.subtract(offst).add(1, 'days'));
-    } else if (resolution.type === 'hour') {
-      const offset = moment.duration(currentDate.diff(currentDate.clone().startOf('hour')));
-      addTimeIncrement(offset, 'minutes', (currentDt, offst) => currentDt.subtract(offst).add(1, 'hours'));
-    } else if (resolution.type === 'minute') {
+    if (resolution.type === 'minute') {
       addTimeIncrement(moment.duration(0), 'minutes', (currentDt, offst) => currentDt.add(1, 'minutes'));
+    } else if (resolution.type === 'second') {
+      addTimeIncrement(moment.duration(0), 'seconds', (currentDt, offst) => currentDt.add(1, 'seconds'));
     }
     return timeIncrements;
   }
@@ -185,6 +161,7 @@ export default class Timebar extends React.Component {
    */
   render() {
     const {cursorTime} = this.props;
+    console.log(cursorTime);
     const topBarComponent = this.renderTopBar();
     const bottomBarComponent = this.renderBottomBar();
     const GroupTitleRenderer = this.props.groupTitleRenderer;

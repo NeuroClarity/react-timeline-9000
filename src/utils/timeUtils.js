@@ -19,15 +19,15 @@ export function timeSnap(time, snapSeconds) {
 }
 
 /**
- * Get the pixels per minute
+ * Get the pixels per second
  * @param {moment} vis_start The moment specifying the start of the visible timeline range
  * @param {moment} vis_end The moment specifying the end of the visible timeline range
  * @param {number} total_width The width of the timeline in pixels
  * @returns {float} The pixels per minute
  */
-export function pixelsPerMinute(vis_start, vis_end, total_width) {
-  const start_end_min = vis_end.diff(vis_start, 'minutes');
-  return total_width / start_end_min;
+export function pixelsPerSecond(vis_start, vis_end, total_width) {
+  const start_end_sec = vis_end.diff(vis_start, 'seconds');
+  return total_width / start_end_sec;
 }
 
 /**
@@ -38,8 +38,8 @@ export function pixelsPerMinute(vis_start, vis_end, total_width) {
  * @param {number} total_width  the pixel width of the timeline
  * @param {number} snapMinutes the number of minutes to snap to
  */
-export function getSnapPixelFromDelta(delta, vis_start, vis_end, total_width, snapMinutes = 0) {
-  const pixelsPerSnapSegment = pixelsPerMinute(vis_start, vis_end, total_width) * snapMinutes;
+export function getSnapPixelFromDelta(delta, vis_start, vis_end, total_width, snapSeconds = 0) {
+  const pixelsPerSnapSegment = pixelsPerSecond(vis_start, vis_end, total_width) * snapSeconds;
   return Math.round(delta / pixelsPerSnapSegment) * pixelsPerSnapSegment;
 }
 
@@ -52,10 +52,10 @@ export function getSnapPixelFromDelta(delta, vis_start, vis_end, total_width, sn
  * @param {number} snapMinutes The snap resolution (in mins)
  * @returns {moment} Moment object
  */
-export function getTimeAtPixel(pixel_location, vis_start, vis_end, total_width, snapMinutes = 0) {
-  let min_offset = pixel_location / pixelsPerMinute(vis_start, vis_end, total_width);
+export function getTimeAtPixel(pixel_location, vis_start, vis_end, total_width, snapSeconds = 0) {
+  let min_offset = pixel_location / pixelsPerSecond(vis_start, vis_end, total_width);
   let timeAtPix = vis_start.clone().add(min_offset, 'minutes');
-  if (snapMinutes !== 0) timeAtPix = timeSnap(timeAtPix, snapMinutes * 60);
+  if (snapSeconds !== 0) timeAtPix = timeSnap(timeAtPix, snapSeconds * 60);
   return timeAtPix;
 }
 /**
@@ -67,8 +67,8 @@ export function getTimeAtPixel(pixel_location, vis_start, vis_end, total_width, 
  * @returns {number} The pixel offset
  */
 export function getPixelAtTime(time, vis_start, vis_end, total_width) {
-  const min_from_start = time.diff(vis_start, 'minutes');
-  return min_from_start * pixelsPerMinute(vis_start, vis_end, total_width);
+  const sec_from_start = time.diff(vis_start, 'seconds');
+  return sec_from_start * pixelsPerSecond(vis_start, vis_end, total_width);
 }
 /**
  * Returns the duration from the {@link vis_start}
@@ -79,9 +79,9 @@ export function getPixelAtTime(time, vis_start, vis_end, total_width) {
  * @returns {moment} Moment duration
  */
 export function getDurationFromPixels(pixels, vis_start, vis_end, total_width) {
-  const start_end_min = vis_end.diff(vis_start, 'minutes');
-  if (start_end_min === 0) return moment.duration(0, 'minutes');
-  const pixels_per_min = total_width / start_end_min;
-  let mins = pixels / pixels_per_min;
-  return moment.duration(mins, 'minutes');
+  const start_end_sec = vis_end.diff(vis_start, 'seconds');
+  if (start_end_sec === 0) return moment.duration(0, 'seconds');
+  const pixels_per_sec = total_width / start_end_sec;
+  let secs = pixels / pixels_per_sec;
+  return moment.duration(secs, 'seconds');
 }

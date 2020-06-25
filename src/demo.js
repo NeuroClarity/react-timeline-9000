@@ -26,12 +26,12 @@ export default class DemoTimeline extends Component {
   constructor(props) {
     super(props);
 
-    const startDate = moment('2018-08-31');
-    //const endDate = startDate.clone().add(4, 'days');
-    const endDate = moment('2018-09-30');
+    const startDate = moment();
+    const endDate = startDate.clone().add(50, 'seconds');
+    // const endDate = moment();
     this.state = {
       selectedItems: [],
-      rows: 100,
+      rows: 3,
       items_per_row: 30,
       snap: 60,
       startDate,
@@ -42,7 +42,6 @@ export default class DemoTimeline extends Component {
     this.reRender = this.reRender.bind(this);
     this.zoomIn = this.zoomIn.bind(this);
     this.zoomOut = this.zoomOut.bind(this);
-    this.toggleCustomRenderers = this.toggleCustomRenderers.bind(this);
     this.toggleSelectable = this.toggleSelectable.bind(this);
     this.toggleDraggable = this.toggleDraggable.bind(this);
     this.toggleResizable = this.toggleResizable.bind(this);
@@ -60,35 +59,8 @@ export default class DemoTimeline extends Component {
     this.key = 0;
     for (let i = 0; i < this.state.rows; i++) {
       groups.push({id: i, title: `Row ${i}`});
-      for (let j = 0; j < this.state.items_per_row; j++) {
-        this.key += 1;
-        const color = COLORS[(i + j) % COLORS.length];
-        const duration = ITEM_DURATIONS[Math.floor(Math.random() * ITEM_DURATIONS.length)];
-        // let start = last_moment;
-        let start = moment(
-          Math.random() * (this.state.endDate.valueOf() - this.state.startDate.valueOf()) +
-            this.state.startDate.valueOf()
-        );
-        let end = start.clone().add(duration);
-
-        // Round to the nearest snap distance
-        const roundedStartMinutes = Math.floor(start.minute() / snap) * snap;
-        const roundedEndMinutes = Math.floor(end.minute() / snap) * snap;
-        start.minute(roundedStartMinutes).second(0);
-        end.minute(roundedEndMinutes).second(0);
-
-        list.push({
-          key: this.key,
-          title: duration.humanize(),
-          color,
-          row: i,
-          start,
-          end
-        });
-      }
     }
 
-    // this.state = {selectedItems: [11, 12], groups, items: list};
     this.forceUpdate();
     this.setState({items: list, groups});
   }
@@ -97,19 +69,17 @@ export default class DemoTimeline extends Component {
     const message = `Row Click row=${rowNumber} @ time/snapped=${clickedTime.toString()}/${snappedClickedTime.toString()}`;
     this.setState({selectedItems: [], message});
   };
+
   zoomIn() {
-    let currentMins = this.state.endDate.diff(this.state.startDate, 'minutes');
-    let newMins = currentMins / 2;
-    this.setState({endDate: this.state.startDate.clone().add(newMins, 'minutes')});
-  }
-  zoomOut() {
-    let currentMins = this.state.endDate.diff(this.state.startDate, 'minutes');
-    let newMins = currentMins * 2;
-    this.setState({endDate: this.state.startDate.clone().add(newMins, 'minutes')});
+    let currentSecs = this.state.endDate.diff(this.state.startDate, 'seconds');
+    let newSecs = currentSecs / 2;
+    this.setState({endDate: this.state.startDate.clone().add(newSecs, 'seconds')});
   }
 
-  toggleCustomRenderers(checked) {
-    this.setState({useCustomRenderers: checked});
+  zoomOut() {
+    let currentSecs = this.state.endDate.diff(this.state.startDate, 'seconds');
+    let newSecs = currentSecs * 2;
+    this.setState({endDate: this.state.startDate.clone().add(newSecs, 'seconds')});
   }
 
   toggleSelectable() {
@@ -117,16 +87,19 @@ export default class DemoTimeline extends Component {
     let newMode = timelineMode ^ TIMELINE_MODES.SELECT;
     this.setState({timelineMode: newMode, message: 'Timeline mode change: ' + timelineMode + ' -> ' + newMode});
   }
+
   toggleDraggable() {
     const {timelineMode} = this.state;
     let newMode = timelineMode ^ TIMELINE_MODES.DRAG;
     this.setState({timelineMode: newMode, message: 'Timeline mode change: ' + timelineMode + ' -> ' + newMode});
   }
+
   toggleResizable() {
     const {timelineMode} = this.state;
     let newMode = timelineMode ^ TIMELINE_MODES.RESIZE;
     this.setState({timelineMode: newMode, message: 'Timeline mode change: ' + timelineMode + ' -> ' + newMode});
   }
+
   handleItemClick = (e, key) => {
     const message = `Item Click ${key}`;
     const {selectedItems} = this.state;
@@ -156,27 +129,8 @@ export default class DemoTimeline extends Component {
   };
 
   handleRowDoubleClick = (e, rowNumber, clickedTime, snappedClickedTime) => {
-    const message = `Row Double Click row=${rowNumber} time/snapped=${clickedTime.toString()}/${snappedClickedTime.toString()}`;
-
-    const randomIndex = Math.floor(Math.random() * Math.floor(ITEM_DURATIONS.length));
-
-    let start = snappedClickedTime.clone();
-    let end = snappedClickedTime.clone().add(ITEM_DURATIONS[randomIndex]);
-    this.key++;
-
-    const item = {
-      key: this.key++,
-      title: 'New item',
-      color: 'yellow',
-      row: rowNumber,
-      start: start,
-      end: end
-    };
-
-    const newItems = _.clone(this.state.items);
-    newItems.push(item);
-
-    this.setState({items: newItems, message});
+    const message = `Row Double Click ${rowNumber}`;
+    this.setState({message});
   };
 
   handleRowContextClick = (e, rowNumber, clickedTime, snappedClickedTime) => {
@@ -317,9 +271,6 @@ export default class DemoTimeline extends Component {
               <Form.Item>
                 <Button onClick={this.zoomOut}>Zoom out</Button>
               </Form.Item>
-              <Form.Item label="Custom Renderers">
-                <Switch onChange={this.toggleCustomRenderers} />
-              </Form.Item>
               <Form.Item>
                 <Checkbox onChange={this.toggleSelectable} checked={selectable}>
                   Enable selecting
@@ -343,8 +294,12 @@ export default class DemoTimeline extends Component {
           </div>
           <Timeline
             shallowUpdateCheck
-            items={items}
-            groups={groups}
+            items={[]}
+            groups={[
+              {id: 0, title: 'EEG Signal'},
+              {id: 1, title: 'Emotion'},
+              {id: 2, title: 'Focus'}
+            ]}
             startDate={startDate}
             endDate={endDate}
             rowLayers={rowLayers}

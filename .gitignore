@@ -22,3 +22,5 @@ node_modules/
 .lvimrc
 .DS_Store
 /.idea
+
+*.swp

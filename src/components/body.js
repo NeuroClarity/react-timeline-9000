@@ -37,7 +37,7 @@ class TimelineBody extends Component {
         ref={grid_ref_callback}
         autoContainerWidth
         cellRenderer={cellRenderer}
-        columnCount={2}
+        columnCount={3}
         columnWidth={columnWidth}
         height={height}
         rowCount={rowCount}

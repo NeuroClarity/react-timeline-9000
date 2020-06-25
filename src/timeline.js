@@ -20,7 +20,7 @@ import {
   getVerticalMarginBorder,
   getRowObjectRowNumber
 } from './utils/itemUtils';
-import {timeSnap, getTimeAtPixel, getPixelAtTime, getSnapPixelFromDelta, pixelsPerMinute} from './utils/timeUtils';
+import {timeSnap, getTimeAtPixel, getPixelAtTime, getSnapPixelFromDelta, pixelsPerSecond} from './utils/timeUtils';
 import Timebar from './components/timebar';
 import SelectBox from './components/selector';
 import {DefaultGroupRenderer, DefaultItemRenderer} from './components/renderers';
@@ -60,7 +60,7 @@ export default class Timeline extends React.Component {
     selectedItems: PropTypes.arrayOf(PropTypes.number),
     startDate: PropTypes.object.isRequired,
     endDate: PropTypes.object.isRequired,
-    snapMinutes: PropTypes.number,
+    snapSeconds: PropTypes.number,
     showCursorTime: PropTypes.bool,
     cursorTimeFormat: PropTypes.string,
     componentId: PropTypes.string, // A unique key to identify the component. Only needed when 2 grids are mounted
@@ -87,8 +87,8 @@ export default class Timeline extends React.Component {
     rowLayers: [],
     groupOffset: 150,
     itemHeight: 40,
-    snapMinutes: 15,
-    cursorTimeFormat: 'D MMM YYYY HH:mm',
+    snapSeconds: 1,
+    cursorTimeFormat: 'mm:ss',
     componentId: 'r9k1',
     showCursorTime: true,
     groupRenderer: DefaultGroupRenderer,
@@ -365,7 +365,7 @@ export default class Timeline extends React.Component {
             this.props.startDate,
             this.props.endDate,
             this.getTimelineWidth(),
-            this.props.snapMinutes
+            this.props.snapSeconds
           );
 
           _.forEach(animatedItems, domItem => {
@@ -377,7 +377,7 @@ export default class Timeline extends React.Component {
               this.props.startDate,
               this.props.endDate,
               this.getTimelineWidth(),
-              this.props.snapMinutes
+              this.props.snapSeconds
             );
 
             let newEnd = newStart.clone().add(itemDuration);
@@ -410,7 +410,7 @@ export default class Timeline extends React.Component {
             this.props.startDate,
             this.props.endDate,
             this.getTimelineWidth(),
-            this.props.snapMinutes
+            this.props.snapSeconds
           );
 
           const timeDelta = newStart.clone().diff(item.start, 'minutes');
@@ -478,14 +478,14 @@ export default class Timeline extends React.Component {
           let dw = e.rect.width - Number(e.target.getAttribute('initialWidth'));
 
           const minimumWidth =
-            pixelsPerMinute(this.props.startDate, this.props.endDate, this.getTimelineWidth()) * this.props.snapMinutes;
+            pixelsPerSecond(this.props.startDate, this.props.endDate, this.getTimelineWidth()) * this.props.snapSeconds;
 
           const snappedDx = getSnapPixelFromDelta(
             dx,
             this.props.startDate,
             this.props.endDate,
             this.getTimelineWidth(),
-            this.props.snapMinutes
+            this.props.snapSeconds
           );
 
           const snappedDw = getSnapPixelFromDelta(
@@ -493,7 +493,7 @@ export default class Timeline extends React.Component {
             this.props.startDate,
             this.props.endDate,
             this.getTimelineWidth(),
-            this.props.snapMinutes
+            this.props.snapSeconds
           );
 
           _.forEach(animatedItems, item => {
@@ -525,7 +525,7 @@ export default class Timeline extends React.Component {
                 this.props.startDate,
                 this.props.endDate,
                 this.getTimelineWidth(),
-                this.props.snapMinutes
+                this.props.snapSeconds
               );
               if (durationChange === null) durationChange = item.start.diff(newStart, 'minutes');
               item.start = newStart;
@@ -536,7 +536,7 @@ export default class Timeline extends React.Component {
                 this.props.startDate,
                 this.props.endDate,
                 this.getTimelineWidth(),
-                this.props.snapMinutes
+                this.props.snapSeconds
               );
               if (durationChange === null) durationChange = item.end.diff(newEnd, 'minutes');
 
@@ -644,14 +644,14 @@ export default class Timeline extends React.Component {
               this.props.startDate,
               this.props.endDate,
               this.getTimelineWidth(),
-              this.props.snapMinutes
+              this.props.snapSeconds
             );
             const endTime = getTimeAtPixel(
               endOffset,
               this.props.startDate,
               this.props.endDate,
               this.getTimelineWidth(),
-              this.props.snapMinutes
+              this.props.snapSeconds
             );
             //Get items in these ranges
             let selectedItems = [];
@@ -687,7 +687,7 @@ export default class Timeline extends React.Component {
       );
 
       //const roundedStartMinutes = Math.round(clickedTime.minute() / this.props.snapMinutes) * this.props.snapMinutes; // I dont know what this does
-      let snappedClickedTime = timeSnap(clickedTime, this.props.snapMinutes * 60);
+      let snappedClickedTime = timeSnap(clickedTime, this.props.snapSeconds * 60);
       rowCallback && rowCallback(e, row, clickedTime, snappedClickedTime);
     }
   };
@@ -802,7 +802,7 @@ export default class Timeline extends React.Component {
       this.props.startDate,
       this.props.endDate,
       this.getTimelineWidth(),
-      this.props.snapMinutes
+      this.props.snapSeconds
     );
     if (!this.mouse_snapped_time || this.mouse_snapped_time.unix() !== cursorSnappedTime.unix()) {
       if (cursorSnappedTime.isSameOrAfter(this.props.startDate)) {
@@ -850,6 +850,7 @@ export default class Timeline extends React.Component {
     const markers = [];
     if (showCursorTime && this.mouse_snapped_time) {
       const cursorPix = getPixelAtTime(this.mouse_snapped_time, startDate, endDate, this.getTimelineWidth());
+      console.log('markers: ', markers);
       markers.push({
         left: cursorPix + this.props.groupOffset,
         key: 1

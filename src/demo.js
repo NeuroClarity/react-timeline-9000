@@ -27,7 +27,7 @@ export default class DemoTimeline extends Component {
     super(props);
 
     const startTime = moment();
-    const endTime = startTime.clone().add(50, 'seconds');
+    const endTime = startTime.clone().add(30, 'seconds');
     // const endTime = moment();
     this.state = {
       selectedItems: [],

@@ -31,6 +31,7 @@ class TimelineBody extends Component {
   render() {
     const {width, columnWidth, height, rowHeight, rowCount} = this.props;
     const {grid_ref_callback, cellRenderer} = this.props;
+    console.log('body height: ', height);
 
     return (
       <Grid

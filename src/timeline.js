@@ -85,7 +85,8 @@ export default class Timeline extends React.Component {
 
   static defaultProps = {
     rowLayers: [],
-    groupOffset: 130,
+    groupOffset: 200,
+    groupHeight: 100,
     itemHeight: 40,
     snapSeconds: 1,
     cursorTimeFormat: 'mm:ss',
@@ -798,8 +799,6 @@ export default class Timeline extends React.Component {
     const {componentId} = this.props;
     const leftOffset = document.querySelector(`.rct9k-id-${componentId} .parent-div`).getBoundingClientRect().left;
     //TODO where bug is
-    console.log('x: ', e.clientX);
-    console.log('left: ', leftOffset);
     const cursorSnappedTime = getTimeAtPixel(
       e.clientX - this.props.groupOffset - leftOffset,
       this.props.startTime,
@@ -807,7 +806,6 @@ export default class Timeline extends React.Component {
       this.getTimelineWidth(),
       this.props.snapSeconds
     );
-    console.log('cursorSnappedTime', cursorSnappedTime.format('mm:ss'));
     if (!this.mouse_snapped_time || this.mouse_snapped_time.unix() !== cursorSnappedTime.unix()) {
       if (cursorSnappedTime.isSameOrAfter(this.props.startTime)) {
         this.mouse_snapped_time = cursorSnappedTime;
@@ -853,19 +851,35 @@ export default class Timeline extends React.Component {
     // Markers (only current time marker atm)
     const markers = [];
     if (showCursorTime && this.mouse_snapped_time) {
+      // TODO: issue is component only rendering when snapped_time updating
       const cursorPix = getPixelAtTime(this.mouse_snapped_time, startTime, endTime, this.getTimelineWidth());
-      console.log('cursorPix: ', cursorPix);
       markers.push({
         left: cursorPix + this.props.groupOffset,
         key: 1
       });
     }
+    const height = this.props.groupHeight * this.props.groups.length;
+    console.log('height: ', this.props.groups.length);
     return (
       <div className={divCssClass}>
         <AutoSizer className="rct9k-autosizer" onResize={this.refreshGrid}>
-          {({height, width}) => (
+          {({_, width}) => (
             <div className="parent-div" onMouseMove={this.mouseMoveFunc}>
               <SelectBox ref={this.select_ref_callback} />
+              {markers.map(m => (
+                <Marker key={m.key} height={height} top={0} left={m.left} />
+              ))}
+              <TimelineBody
+                width={width}
+                columnWidth={columnWidth(width)}
+                height={height}
+                rowHeight={this.props.groupHeight}
+                rowCount={this.props.groups.length}
+                cellRenderer={this.cellRenderer(this.getTimelineWidth(width))}
+                grid_ref_callback={this.grid_ref_callback}
+                shallowUpdateCheck={shallowUpdateCheck}
+                forceRedrawFunc={forceRedrawFunc}
+              />
               <Timebar
                 cursorTime={this.getCursor()}
                 start={this.props.startTime}
@@ -875,20 +889,6 @@ export default class Timeline extends React.Component {
                 selectedRanges={this.state.selection}
                 groupTitleRenderer={groupTitleRenderer}
                 {...varTimebarProps}
-              />
-              {markers.map(m => (
-                <Marker key={m.key} height={height} top={0} left={m.left} />
-              ))}
-              <TimelineBody
-                width={width}
-                columnWidth={columnWidth(width)}
-                height={height}
-                rowHeight={this.rowHeight}
-                rowCount={this.props.groups.length}
-                cellRenderer={this.cellRenderer(this.getTimelineWidth(width))}
-                grid_ref_callback={this.grid_ref_callback}
-                shallowUpdateCheck={shallowUpdateCheck}
-                forceRedrawFunc={forceRedrawFunc}
               />
             </div>
           )}

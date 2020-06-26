@@ -54,7 +54,7 @@ export function getSnapPixelFromDelta(delta, vis_start, vis_end, total_width, sn
  * @returns {moment} Moment object
  */
 export function getTimeAtPixel(pixel_location, vis_start, vis_end, total_width, snapSeconds = 0) {
-  let sec_offset = pixel_location / pixelsPerSecond(vis_start, vis_end, total_width);
+  let sec_offset = Math.floor(pixel_location / pixelsPerSecond(vis_start, vis_end, total_width));
   let timeAtPix = vis_start.clone().add(sec_offset, 'seconds');
   // TODO: handle here if we want snap
   // if (snapSeconds !== 0) timeAtPix = timeSnap(timeAtPix, snapSeconds);

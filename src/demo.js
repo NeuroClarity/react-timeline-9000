@@ -26,16 +26,16 @@ export default class DemoTimeline extends Component {
   constructor(props) {
     super(props);
 
-    const startDate = moment();
-    const endDate = startDate.clone().add(50, 'seconds');
-    // const endDate = moment();
+    const startTime = moment();
+    const endTime = startTime.clone().add(50, 'seconds');
+    // const endTime = moment();
     this.state = {
       selectedItems: [],
       rows: 3,
       items_per_row: 30,
       snap: 60,
-      startDate,
-      endDate,
+      startTime,
+      endTime,
       message: '',
       timelineMode: TIMELINE_MODES.SELECT | TIMELINE_MODES.DRAG | TIMELINE_MODES.RESIZE
     };
@@ -71,15 +71,15 @@ export default class DemoTimeline extends Component {
   };
 
   zoomIn() {
-    let currentSecs = this.state.endDate.diff(this.state.startDate, 'seconds');
+    let currentSecs = this.state.endTime.diff(this.state.startTime, 'seconds');
     let newSecs = currentSecs / 2;
-    this.setState({endDate: this.state.startDate.clone().add(newSecs, 'seconds')});
+    this.setState({endTime: this.state.startTime.clone().add(newSecs, 'seconds')});
   }
 
   zoomOut() {
-    let currentSecs = this.state.endDate.diff(this.state.startDate, 'seconds');
+    let currentSecs = this.state.endTime.diff(this.state.startTime, 'seconds');
     let newSecs = currentSecs * 2;
-    this.setState({endDate: this.state.startDate.clone().add(newSecs, 'seconds')});
+    this.setState({endTime: this.state.startTime.clone().add(newSecs, 'seconds')});
   }
 
   toggleSelectable() {
@@ -194,15 +194,15 @@ export default class DemoTimeline extends Component {
       rows,
       items_per_row,
       snap,
-      startDate,
-      endDate,
+      startTime,
+      endTime,
       items,
       groups,
       message,
       useCustomRenderers,
       timelineMode
     } = this.state;
-    const rangeValue = [startDate, endDate];
+    const rangeValue = [startTime, endTime];
 
     const selectable = (TIMELINE_MODES.SELECT & timelineMode) === TIMELINE_MODES.SELECT;
     const draggable = (TIMELINE_MODES.DRAG & timelineMode) === TIMELINE_MODES.DRAG;
@@ -213,8 +213,8 @@ export default class DemoTimeline extends Component {
       if (i % 5 === 0 && i !== 0) {
         continue;
       }
-      let curDate = startDate.clone();
-      while (curDate.isSameOrBefore(endDate)) {
+      let curDate = startTime.clone();
+      while (curDate.isSameOrBefore(endTime)) {
         const dayOfWeek = Number(curDate.format('d')); // 0 -> 6: Sun -> Sat
         let bandDuration = 0; // days
         let color = '';
@@ -249,16 +249,6 @@ export default class DemoTimeline extends Component {
               </Form.Item>
               <Form.Item label="Snap (mins)">
                 <InputNumber value={snap} onChange={e => this.setState({snap: e})} />
-              </Form.Item>
-              <Form.Item label="Date Range">
-                <DatePicker.RangePicker
-                  allowClear={false}
-                  value={rangeValue}
-                  showTime
-                  onChange={e => {
-                    this.setState({startDate: e[0], endDate: e[1]}, () => this.reRender());
-                  }}
-                />
               </Form.Item>
               <Form.Item>
                 <Button type="primary" onClick={() => this.reRender()}>
@@ -300,8 +290,8 @@ export default class DemoTimeline extends Component {
               {id: 1, title: 'Emotion'},
               {id: 2, title: 'Focus'}
             ]}
-            startDate={startDate}
-            endDate={endDate}
+            startTime={startTime}
+            endTime={endTime}
             rowLayers={rowLayers}
             selectedItems={selectedItems}
             timelineMode={timelineMode}

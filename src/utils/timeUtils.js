@@ -9,13 +9,14 @@ import moment from 'moment';
  * @returns {moment} Snapped moment
  */
 export function timeSnap(time, snapSeconds) {
+  // TODO -> figure out how we want to "snap"
   if (snapSeconds === 0) {
     const newTime = time.clone();
     newTime.set('millisecond', 0);
     return newTime;
   }
-  const newUnix = Math.round(time.unix() / snapSeconds) * snapSeconds;
-  return moment(newUnix * 1000);
+  const newUnix = Math.round(time.unix() + snapSeconds);
+  return moment(newUnix);
 }
 
 /**
@@ -53,9 +54,10 @@ export function getSnapPixelFromDelta(delta, vis_start, vis_end, total_width, sn
  * @returns {moment} Moment object
  */
 export function getTimeAtPixel(pixel_location, vis_start, vis_end, total_width, snapSeconds = 0) {
-  let min_offset = pixel_location / pixelsPerSecond(vis_start, vis_end, total_width);
-  let timeAtPix = vis_start.clone().add(min_offset, 'minutes');
-  if (snapSeconds !== 0) timeAtPix = timeSnap(timeAtPix, snapSeconds * 60);
+  let sec_offset = pixel_location / pixelsPerSecond(vis_start, vis_end, total_width);
+  let timeAtPix = vis_start.clone().add(sec_offset, 'seconds');
+  // TODO: handle here if we want snap
+  // if (snapSeconds !== 0) timeAtPix = timeSnap(timeAtPix, snapSeconds);
   return timeAtPix;
 }
 /**

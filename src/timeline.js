@@ -58,8 +58,8 @@ export default class Timeline extends React.Component {
       })
     ),
     selectedItems: PropTypes.arrayOf(PropTypes.number),
-    startDate: PropTypes.object.isRequired,
-    endDate: PropTypes.object.isRequired,
+    startTime: PropTypes.object.isRequired,
+    endTime: PropTypes.object.isRequired,
     snapSeconds: PropTypes.number,
     showCursorTime: PropTypes.bool,
     cursorTimeFormat: PropTypes.string,
@@ -85,7 +85,7 @@ export default class Timeline extends React.Component {
 
   static defaultProps = {
     rowLayers: [],
-    groupOffset: 150,
+    groupOffset: 130,
     itemHeight: 40,
     snapSeconds: 1,
     cursorTimeFormat: 'mm:ss',
@@ -161,7 +161,7 @@ export default class Timeline extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setTimeMap(nextProps.items, nextProps.startDate, nextProps.endDate);
+    this.setTimeMap(nextProps.items, nextProps.startTime, nextProps.endTime);
     // @TODO
     // investigate if we need this, only added to refresh the grid
     // when double click -> add an item
@@ -202,19 +202,19 @@ export default class Timeline extends React.Component {
   /**
    * Sets the internal maps used by the component for looking up item & row data
    * @param {Object[]} items The items to be displayed in the grid
-   * @param {moment} startDate The visible start date of the timeline
-   * @param {moment} endDate The visible end date of the timeline
+   * @param {moment} startTime The visible start date of the timeline
+   * @param {moment} endTime The visible end date of the timeline
    */
-  setTimeMap(items, startDate, endDate) {
-    if (!startDate || !endDate) {
-      startDate = this.props.startDate;
-      endDate = this.props.endDate;
+  setTimeMap(items, startTime, endTime) {
+    if (!startTime || !endTime) {
+      startTime = this.props.startTime;
+      endTime = this.props.endTime;
     }
     this.itemRowMap = {}; // timeline elements (key) => (rowNo).
     this.rowItemMap = {}; // (rowNo) => timeline elements
     this.rowHeightCache = {}; // (rowNo) => max number of stacked items
     let visibleItems = _.filter(items, i => {
-      return i.end > startDate && i.start < endDate;
+      return i.end > startTime && i.start < endTime;
     });
     let itemRows = _.groupBy(visibleItems, 'row');
     _.forEach(itemRows, (visibleItems, row) => {
@@ -362,8 +362,8 @@ export default class Timeline extends React.Component {
           // Snap the movement to the current snap interval
           const snapDx = getSnapPixelFromDelta(
             dx,
-            this.props.startDate,
-            this.props.endDate,
+            this.props.startTime,
+            this.props.endTime,
             this.getTimelineWidth(),
             this.props.snapSeconds
           );
@@ -374,8 +374,8 @@ export default class Timeline extends React.Component {
             let newPixelOffset = pixToInt(domItem.style.left) + snapDx;
             let newStart = getTimeAtPixel(
               newPixelOffset,
-              this.props.startDate,
-              this.props.endDate,
+              this.props.startTime,
+              this.props.endTime,
               this.getTimelineWidth(),
               this.props.snapSeconds
             );
@@ -407,8 +407,8 @@ export default class Timeline extends React.Component {
           let newPixelOffset = pixToInt(e.target.style.left) + (parseFloat(e.target.getAttribute('drag-x')) || 0);
           let newStart = getTimeAtPixel(
             newPixelOffset,
-            this.props.startDate,
-            this.props.endDate,
+            this.props.startTime,
+            this.props.endTime,
             this.getTimelineWidth(),
             this.props.snapSeconds
           );
@@ -478,20 +478,20 @@ export default class Timeline extends React.Component {
           let dw = e.rect.width - Number(e.target.getAttribute('initialWidth'));
 
           const minimumWidth =
-            pixelsPerSecond(this.props.startDate, this.props.endDate, this.getTimelineWidth()) * this.props.snapSeconds;
+            pixelsPerSecond(this.props.startTime, this.props.endTime, this.getTimelineWidth()) * this.props.snapSeconds;
 
           const snappedDx = getSnapPixelFromDelta(
             dx,
-            this.props.startDate,
-            this.props.endDate,
+            this.props.startTime,
+            this.props.endTime,
             this.getTimelineWidth(),
             this.props.snapSeconds
           );
 
           const snappedDw = getSnapPixelFromDelta(
             dw,
-            this.props.startDate,
-            this.props.endDate,
+            this.props.startTime,
+            this.props.endTime,
             this.getTimelineWidth(),
             this.props.snapSeconds
           );
@@ -522,8 +522,8 @@ export default class Timeline extends React.Component {
             if (isStartTimeChange) {
               let newStart = getTimeAtPixel(
                 startPixelOffset,
-                this.props.startDate,
-                this.props.endDate,
+                this.props.startTime,
+                this.props.endTime,
                 this.getTimelineWidth(),
                 this.props.snapSeconds
               );
@@ -533,8 +533,8 @@ export default class Timeline extends React.Component {
               let endPixelOffset = startPixelOffset + pixToInt(domItem.style.width);
               let newEnd = getTimeAtPixel(
                 endPixelOffset,
-                this.props.startDate,
-                this.props.endDate,
+                this.props.startTime,
+                this.props.endTime,
                 this.getTimelineWidth(),
                 this.props.snapSeconds
               );
@@ -546,8 +546,8 @@ export default class Timeline extends React.Component {
             // Check row height doesn't need changing
             let new_row_height = getMaxOverlappingItems(
               this.rowItemMap[rowNo],
-              this.props.startDate,
-              this.props.endDate
+              this.props.startTime,
+              this.props.endTime
             );
             if (new_row_height !== this.rowHeightCache[rowNo]) {
               this.rowHeightCache[rowNo] = new_row_height;
@@ -641,15 +641,15 @@ export default class Timeline extends React.Component {
             let endOffset = width > 0 ? left + width : left;
             const startTime = getTimeAtPixel(
               startOffset,
-              this.props.startDate,
-              this.props.endDate,
+              this.props.startTime,
+              this.props.endTime,
               this.getTimelineWidth(),
               this.props.snapSeconds
             );
             const endTime = getTimeAtPixel(
               endOffset,
-              this.props.startDate,
-              this.props.endDate,
+              this.props.startTime,
+              this.props.endTime,
               this.getTimelineWidth(),
               this.props.snapSeconds
             );
@@ -681,8 +681,8 @@ export default class Timeline extends React.Component {
       let row = e.target.getAttribute('data-row-index');
       let clickedTime = getTimeAtPixel(
         e.clientX - this.props.groupOffset,
-        this.props.startDate,
-        this.props.endDate,
+        this.props.startTime,
+        this.props.endTime,
         this.getTimelineWidth()
       );
 
@@ -737,14 +737,14 @@ export default class Timeline extends React.Component {
             onDoubleClick={e => this._handleItemRowEvent(e, this.props.onItemDoubleClick, this.props.onRowDoubleClick)}>
             {rowItemsRenderer(
               itemsInRow,
-              this.props.startDate,
-              this.props.endDate,
+              this.props.startTime,
+              this.props.endTime,
               width,
               this.props.itemHeight,
               this.props.itemRenderer,
               canSelect ? this.props.selectedItems : []
             )}
-            {rowLayerRenderer(layersInRow, this.props.startDate, this.props.endDate, width, rowHeight)}
+            {rowLayerRenderer(layersInRow, this.props.startTime, this.props.endTime, width, rowHeight)}
           </div>
         );
       } else {
@@ -797,15 +797,19 @@ export default class Timeline extends React.Component {
   throttledMouseMoveFunc(e) {
     const {componentId} = this.props;
     const leftOffset = document.querySelector(`.rct9k-id-${componentId} .parent-div`).getBoundingClientRect().left;
+    //TODO where bug is
+    console.log('x: ', e.clientX);
+    console.log('left: ', leftOffset);
     const cursorSnappedTime = getTimeAtPixel(
       e.clientX - this.props.groupOffset - leftOffset,
-      this.props.startDate,
-      this.props.endDate,
+      this.props.startTime,
+      this.props.endTime,
       this.getTimelineWidth(),
       this.props.snapSeconds
     );
+    console.log('cursorSnappedTime', cursorSnappedTime.format('mm:ss'));
     if (!this.mouse_snapped_time || this.mouse_snapped_time.unix() !== cursorSnappedTime.unix()) {
-      if (cursorSnappedTime.isSameOrAfter(this.props.startDate)) {
+      if (cursorSnappedTime.isSameOrAfter(this.props.startTime)) {
         this.mouse_snapped_time = cursorSnappedTime;
         this.setState({cursorTime: this.mouse_snapped_time});
         this.props.onInteraction(
@@ -832,8 +836,8 @@ export default class Timeline extends React.Component {
       groupTitleRenderer,
       shallowUpdateCheck,
       forceRedrawFunc,
-      startDate,
-      endDate
+      startTime,
+      endTime
     } = this.props;
 
     const divCssClass = `rct9k-timeline-div rct9k-id-${componentId}`;
@@ -849,8 +853,8 @@ export default class Timeline extends React.Component {
     // Markers (only current time marker atm)
     const markers = [];
     if (showCursorTime && this.mouse_snapped_time) {
-      const cursorPix = getPixelAtTime(this.mouse_snapped_time, startDate, endDate, this.getTimelineWidth());
-      console.log('markers: ', markers);
+      const cursorPix = getPixelAtTime(this.mouse_snapped_time, startTime, endTime, this.getTimelineWidth());
+      console.log('cursorPix: ', cursorPix);
       markers.push({
         left: cursorPix + this.props.groupOffset,
         key: 1
@@ -864,8 +868,8 @@ export default class Timeline extends React.Component {
               <SelectBox ref={this.select_ref_callback} />
               <Timebar
                 cursorTime={this.getCursor()}
-                start={this.props.startDate}
-                end={this.props.endDate}
+                start={this.props.startTime}
+                end={this.props.endTime}
                 width={width}
                 leftOffset={groupOffset}
                 selectedRanges={this.state.selection}

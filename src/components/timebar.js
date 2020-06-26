@@ -161,7 +161,6 @@ export default class Timebar extends React.Component {
    */
   render() {
     const {cursorTime} = this.props;
-    console.log(cursorTime);
     const topBarComponent = this.renderTopBar();
     const bottomBarComponent = this.renderBottomBar();
     const GroupTitleRenderer = this.props.groupTitleRenderer;

@@ -13,6 +13,7 @@ import {pixToInt, intToPix, sumStyle} from './utils/commonUtils';
 import {
   rowItemsRenderer,
   rowLayerRenderer,
+  rowGraphRenderer,
   getNearestRowNumber,
   getNearestRowObject,
   getMaxOverlappingItems,
@@ -58,8 +59,11 @@ export default class Timeline extends React.Component {
       })
     ),
     selectedItems: PropTypes.arrayOf(PropTypes.number),
+    selectStartTime: PropTypes.object.isRequired,
+    selectEndTime: PropTypes.object.isRequired,
     startTime: PropTypes.object.isRequired,
     endTime: PropTypes.object.isRequired,
+    data: PropTypes.object.isRequired,
     snapSeconds: PropTypes.number,
     showCursorTime: PropTypes.bool,
     cursorTimeFormat: PropTypes.string,
@@ -71,6 +75,7 @@ export default class Timeline extends React.Component {
     onItemDoubleClick: PropTypes.func,
     onItemContext: PropTypes.func,
     onInteraction: PropTypes.func.isRequired,
+    handleSelection: PropTypes.func.isRequired,
     onRowClick: PropTypes.func,
     onRowContext: PropTypes.func,
     onRowDoubleClick: PropTypes.func,
@@ -85,8 +90,8 @@ export default class Timeline extends React.Component {
 
   static defaultProps = {
     rowLayers: [],
-    groupOffset: 200,
-    groupHeight: 100,
+    groupOffset: 100,
+    groupHeight: 150,
     itemHeight: 40,
     snapSeconds: 1,
     cursorTimeFormat: 'mm:ss',
@@ -586,6 +591,7 @@ export default class Timeline extends React.Component {
           // this._selectBox.start(e.clientX, topRowObj.style.top);
           this._selectBox.start(e.clientX, nearestRowObject.getBoundingClientRect().y);
           // const bottomRow = Number(getNearestRowNumber(left + width, top + height));
+          //
         })
         .on('dragmove', e => {
           const magicalConstant = 2;
@@ -654,6 +660,8 @@ export default class Timeline extends React.Component {
               this.getTimelineWidth(),
               this.props.snapSeconds
             );
+
+            this.props.handleSelection(startTime, endTime);
             //Get items in these ranges
             let selectedItems = [];
             for (let r = Math.min(topRowNumber, bottomRow); r <= Math.max(topRowNumber, bottomRow); r++) {
@@ -715,6 +723,7 @@ export default class Timeline extends React.Component {
         if (this.rowHeightCache[rowIndex]) {
           rowHeight = rowHeight * this.rowHeightCache[rowIndex];
         }
+
         return (
           <div
             key={key}
@@ -736,16 +745,7 @@ export default class Timeline extends React.Component {
               this._handleItemRowEvent(e, this.props.onItemContextClick, this.props.onRowContextClick)
             }
             onDoubleClick={e => this._handleItemRowEvent(e, this.props.onItemDoubleClick, this.props.onRowDoubleClick)}>
-            {rowItemsRenderer(
-              itemsInRow,
-              this.props.startTime,
-              this.props.endTime,
-              width,
-              this.props.itemHeight,
-              this.props.itemRenderer,
-              canSelect ? this.props.selectedItems : []
-            )}
-            {rowLayerRenderer(layersInRow, this.props.startTime, this.props.endTime, width, rowHeight)}
+            {rowGraphRenderer(this.props.data, rowIndex, width, rowHeight)}
           </div>
         );
       } else {
@@ -859,7 +859,6 @@ export default class Timeline extends React.Component {
       });
     }
     const height = this.props.groupHeight * this.props.groups.length;
-    console.log('height: ', this.props.groups.length);
     return (
       <div className={divCssClass}>
         <AutoSizer className="rct9k-autosizer" onResize={this.refreshGrid}>
